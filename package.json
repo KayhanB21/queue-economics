@@ -1,6 +1,6 @@
 {
   "name": "queue-economics",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Queueing-theory math for the economics of scale: Erlang B/C, M/M/c latency percentiles, pool consolidation (split vs merge), and the square-root staffing rule. Zero-dependency, edge-safe TypeScript.",
   "keywords": [
     "erlang-c",

@@ -17,8 +17,12 @@ export {
   meanResponseTime,
   waitTimeTail,
   waitQuantile,
+  waitTimeVariance,
+  experiencedWaitTime,
   mmcMetrics,
 } from "./metrics";
+
+export { sizeBiasedMean } from "./experience";
 
 export {
   serversForWaitProbability,

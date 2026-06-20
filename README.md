@@ -61,6 +61,9 @@ squareRootStaffing(500, 0.5); // { servers, safetyMargin, beta, ... }
 | `meanWaitTime` / `meanResponseTime` | Mean queue wait `Wq` and total `W = Wq + Ts`. |
 | `waitTimeTail(params, t)` | Exact `P(Wait > t)`. |
 | `waitQuantile(params, q)` | Exact q-quantile of waiting time (e.g. `q = 0.99`). |
+| `waitTimeVariance(params)` | Variance of the waiting time. |
+| `experiencedWaitTime(params)` | Wait as *felt* by arrivals (inspection paradox): `2·Ts/(c − a)`. |
+| `sizeBiasedMean(mean, variance)` | General length-biased mean `mean + variance/mean`. |
 | `mmcMetrics(params)` | Bundle of the above. |
 | `serversForWaitProbability(a, target)` | Smallest `c` meeting a wait-probability target. |
 | `serversForWaitQuantile(lambda, Ts, t, q)` | Smallest `c` whose p-quantile wait ≤ `t`. |

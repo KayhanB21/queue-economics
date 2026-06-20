@@ -14,6 +14,7 @@
  */
 
 import { erlangC, utilization } from "./erlang";
+import { sizeBiasedMean } from "./experience";
 
 export interface MMcParams {
   /** Arrival rate (requests per unit time). */
@@ -116,6 +117,33 @@ export function waitQuantile(params: MMcParams, q: number): number {
   const tail = 1 - q;
   if (tail >= c_) return 0;
   return (Ts / (c - a)) * Math.log(c_ / tail);
+}
+
+/**
+ * Variance of the waiting time. The wait is a mixture: mass (1 − C) at zero, and
+ * with probability C an exponential of rate eta = (c − a)/Ts. That gives
+ * Var = C·(2 − C) / eta^2. Infinite for an unstable system.
+ */
+export function waitTimeVariance(params: MMcParams): number {
+  const a = offeredLoad(params);
+  const { Ts, c } = params;
+  if (a >= c) return Infinity;
+  const c_ = erlangC(c, a);
+  const eta = (c - a) / Ts;
+  return (c_ * (2 - c_)) / (eta * eta);
+}
+
+/**
+ * The waiting time as *experienced* by arrivals (the inspection paradox): the
+ * size-biased mean E[W] + Var(W)/E[W]. For M/M/c this works out to exactly
+ * 2·Ts/(c − a), i.e. twice the conditional mean wait, independent of how often
+ * arrivals wait. See Brooker, "Meet Alice. Alice is impatient." (2026-06-19).
+ */
+export function experiencedWaitTime(params: MMcParams): number {
+  const mean = meanWaitTime(params);
+  if (!Number.isFinite(mean)) return Infinity;
+  if (mean <= 0) return 0;
+  return sizeBiasedMean(mean, waitTimeVariance(params));
 }
 
 /** Bundle of the common metrics for one set of parameters. */
