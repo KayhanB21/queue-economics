@@ -96,6 +96,29 @@ bun run build     # bundle ESM + CJS + types into dist/ via tsup
 bun run typecheck # tsc --noEmit
 ```
 
+## Releasing
+
+This package publishes to npm through GitHub Actions using OIDC trusted publishing,
+so there is no npm token anywhere. Provenance is attached automatically, and the
+publish runs behind a protected `release` environment that requires a manual approval.
+
+To cut a release (maintainers):
+
+1. Bump `version` in `package.json` (this project follows SemVer).
+2. Add an entry to [CHANGELOG.md](./CHANGELOG.md).
+3. Commit and push to `master`.
+4. Create a GitHub Release with the tag `vX.Y.Z`. That tags the commit and triggers
+   the publish workflow (`.github/workflows/publish.yml`).
+5. Approve the `release` deployment when the run pauses for review. The workflow then
+   builds, runs the test suite, and publishes with `npm publish --provenance`.
+
+Notes:
+
+- `v*` tags are protected by a repository ruleset; only admins can create them.
+- For an out-of-band publish you can also run the workflow manually
+  (`gh workflow run publish.yml --ref master`), which still requires the same approval.
+- Requirements baked into the workflow: npm >= 11.5.1, Node 22, and `id-token: write`.
+
 ## Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md).
