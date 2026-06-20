@@ -41,5 +41,13 @@ jobs:
       - name: Build
         run: bun run build
 
+      - name: Show OIDC identity that npm will match against
+        run: |
+          echo "repository:        ${{ github.repository }}"
+          echo "repository_owner:  ${{ github.repository_owner }}"
+          echo "workflow_ref:      ${{ github.workflow_ref }}"
+          echo "ref:               ${{ github.ref }}"
+          echo "npm version:       $(npm --version)"
+
       - name: Publish (provenance via OIDC)
-        run: npm publish --provenance --access public
+        run: npm publish --provenance --access public --loglevel verbose
