@@ -16,6 +16,10 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Deployment protection: requires the "release" GitHub environment (add
+    # required reviewers there). The npm trusted publisher must also set its
+    # "Environment name" field to "release" so the OIDC claim matches.
+    environment: release
     steps:
       - uses: actions/checkout@v4
 

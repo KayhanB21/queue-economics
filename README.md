@@ -1,5 +1,9 @@
 # queue-economics
 
+[![npm version](https://img.shields.io/npm/v/queue-economics.svg)](https://www.npmjs.com/package/queue-economics)
+[![npm downloads](https://img.shields.io/npm/dm/queue-economics.svg)](https://www.npmjs.com/package/queue-economics)
+[![license: MIT](https://img.shields.io/npm/l/queue-economics.svg)](./LICENSE)
+
 Queueing-theory math for the **economics of scale**: bigger server pools wait
 dramatically less at the *same* per-server utilization. Erlang B/C, M/M/c latency
 and percentiles, pool consolidation (split vs merge), and the square-root staffing
@@ -7,9 +11,11 @@ rule.
 
 Zero runtime dependencies. Edge-safe (no Node built-ins). TypeScript.
 
-This package powers the interactive post
-[_Why Bigger Pools Wait Less_](https://kayhan.dev) and is the multi-server sequel to
-the well-known single-server "give your systems some slack" intuition.
+On npm: [`queue-economics`](https://www.npmjs.com/package/queue-economics). It powers the
+interactive post
+[_Why Bigger Pools Wait Less_](https://kayhan.dev/posts/017-why-bigger-pools-wait-less/)
+and is the multi-server sequel to the well-known single-server "give your systems some
+slack" intuition.
 
 ## Install
 
