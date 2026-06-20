@@ -1,0 +1,62 @@
+{
+  "name": "queue-economics",
+  "version": "0.1.0",
+  "description": "Queueing-theory math for the economics of scale: Erlang B/C, M/M/c latency percentiles, pool consolidation (split vs merge), and the square-root staffing rule. Zero-dependency, edge-safe TypeScript.",
+  "keywords": [
+    "erlang-c",
+    "erlang-b",
+    "mmc",
+    "m/m/c",
+    "queue",
+    "queueing",
+    "queueing-theory",
+    "capacity-planning",
+    "load-balancing",
+    "latency",
+    "tail-latency",
+    "percentile",
+    "square-root-staffing"
+  ],
+  "homepage": "https://github.com/KayhanB21/queue-economics",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KayhanB21/queue-economics.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KayhanB21/queue-economics/issues"
+  },
+  "author": "Kayhan Babaee <me@kayhan.dev>",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js",
+        "require": "./dist/index.cjs"
+      }
+    },
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.9.3"
+  }
+}
