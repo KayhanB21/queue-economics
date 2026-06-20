@@ -96,6 +96,10 @@ bun run build     # bundle ESM + CJS + types into dist/ via tsup
 bun run typecheck # tsc --noEmit
 ```
 
+## Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md).
+
 ## License
 
 MIT © Kayhan Babaee
