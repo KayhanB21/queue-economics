@@ -1,13 +1,17 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  experiencedWaitTime,
   meanResponseTime,
   meanWaitTime,
   mmcMetrics,
   offeredLoad,
+  responseQuantile,
+  responseTimeTail,
   waitProbability,
   waitQuantile,
   waitTimeTail,
+  waitTimeVariance,
 } from "./metrics";
 
 describe("metrics — M/M/1 sanity", () => {
@@ -80,12 +84,59 @@ describe("waitQuantile", () => {
   });
 });
 
+describe("responseTimeTail / responseQuantile", () => {
+  const params = { lambda: 8, Ts: 1, c: 10 };
+
+  test("tail at t=0 is 1 and is non-increasing", () => {
+    expect(responseTimeTail(params, 0)).toBeCloseTo(1, 12);
+    let prev = 1;
+    for (const t of [0.1, 0.5, 1, 2, 5]) {
+      const v = responseTimeTail(params, t);
+      expect(v).toBeLessThanOrEqual(prev + 1e-12);
+      expect(v).toBeGreaterThanOrEqual(0);
+      prev = v;
+    }
+  });
+
+  test("M/M/1 response time is exponential with rate mu - lambda", () => {
+    const p = { lambda: 0.5, Ts: 1, c: 1 }; // mu=1, rate = 0.5
+    for (const t of [0.5, 1, 3, 6]) {
+      expect(responseTimeTail(p, t)).toBeCloseTo(Math.exp(-0.5 * t), 9);
+    }
+  });
+
+  test("equal-rate case (c - a = 1) stays finite and valid", () => {
+    const p = { lambda: 9, Ts: 1, c: 10 }; // c - a = 1, eta == mu
+    expect(responseTimeTail(p, 0)).toBeCloseTo(1, 9);
+    expect(responseTimeTail(p, 5)).toBeGreaterThan(0);
+  });
+
+  test("responseQuantile inverts the tail", () => {
+    for (const q of [0.5, 0.9, 0.99]) {
+      const t = responseQuantile(params, q);
+      expect(responseTimeTail(params, t)).toBeCloseTo(1 - q, 4);
+    }
+  });
+
+  test("response p50 exceeds wait p50 (service always adds time)", () => {
+    expect(waitQuantile(params, 0.5)).toBe(0); // fewer than half wait
+    expect(responseQuantile(params, 0.5)).toBeGreaterThan(0);
+  });
+});
+
 describe("mmcMetrics bundle", () => {
   test("reports utilization and stability", () => {
     const m = mmcMetrics({ lambda: 8, Ts: 1, c: 10 });
     expect(m.utilization).toBeCloseTo(0.8, 12);
     expect(m.stable).toBe(true);
     expect(m.offeredLoad).toBeCloseTo(8, 12);
+  });
+
+  test("includes variance and experienced wait matching the standalone functions", () => {
+    const p = { lambda: 8, Ts: 1, c: 10 };
+    const m = mmcMetrics(p);
+    expect(m.waitTimeVariance).toBeCloseTo(waitTimeVariance(p), 12);
+    expect(m.experiencedWaitTime).toBeCloseTo(experiencedWaitTime(p), 12);
   });
 });
 

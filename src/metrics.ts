@@ -36,6 +36,10 @@ export interface MMcMetrics {
   meanWaitTime: number;
   /** Mean total time in system: waiting + service (W = Wq + Ts). */
   meanResponseTime: number;
+  /** Variance of the waiting time. */
+  waitTimeVariance: number;
+  /** Wait as experienced by arrivals (size-biased mean): 2·Ts/(c − a). */
+  experiencedWaitTime: number;
   /** Whether the system is stable (a < c). */
   stable: boolean;
 }
@@ -120,6 +124,57 @@ export function waitQuantile(params: MMcParams, q: number): number {
 }
 
 /**
+ * Tail of the response (sojourn) time: P(wait + service > t).
+ *
+ * Response time is the queue wait plus the service itself. With probability
+ * (1 − C) there is no wait and the response is just an exponential service of
+ * rate mu = 1/Ts. With probability C it is the sum of the waiting time
+ * (exponential, rate eta = (c − a)/Ts) and the service, which has the closed form
+ * below. Exact for M/M/c. (For c = 1 this reduces to a single exponential of rate
+ * mu − lambda, the familiar M/M/1 result.)
+ */
+export function responseTimeTail(params: MMcParams, t: number): number {
+  if (t < 0) throw new RangeError(`t must be >= 0, got ${t}`);
+  const a = offeredLoad(params);
+  const { Ts, c } = params;
+  if (a >= c) return 1;
+  const mu = 1 / Ts;
+  const eta = (c - a) / Ts; // c·mu − lambda
+  const c_ = erlangC(c, a);
+  const expMu = Math.exp(-mu * t);
+  let sumTail: number;
+  if (Math.abs(eta - mu) < 1e-9) {
+    // Equal rates (c − a = 1): the sum is an Erlang-2 (Gamma with shape 2).
+    sumTail = expMu * (1 + mu * t);
+  } else {
+    sumTail = (mu * Math.exp(-eta * t) - eta * expMu) / (mu - eta);
+  }
+  return (1 - c_) * expMu + c_ * sumTail;
+}
+
+/**
+ * The q-quantile of response (sojourn) time, e.g. q = 0.99 for p99 latency end to
+ * end. Unlike the waiting-time quantile there is no closed-form inverse, so this
+ * solves P(response > t) = 1 − q by bisection on the (monotone) tail.
+ */
+export function responseQuantile(params: MMcParams, q: number): number {
+  if (!(q >= 0 && q < 1)) {
+    throw new RangeError(`quantile q must be in [0, 1), got ${q}`);
+  }
+  if (offeredLoad(params) >= params.c) return Infinity;
+  const target = 1 - q;
+  let hi = params.Ts;
+  for (let i = 0; i < 200 && responseTimeTail(params, hi) > target; i++) hi *= 2;
+  let lo = 0;
+  for (let i = 0; i < 100; i++) {
+    const mid = (lo + hi) / 2;
+    if (responseTimeTail(params, mid) > target) lo = mid;
+    else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+/**
  * Variance of the waiting time. The wait is a mixture: mass (1 − C) at zero, and
  * with probability C an exponential of rate eta = (c − a)/Ts. That gives
  * Var = C·(2 − C) / eta^2. Infinite for an unstable system.
@@ -155,6 +210,8 @@ export function mmcMetrics(params: MMcParams): MMcMetrics {
     waitProbability: erlangC(params.c, a),
     meanWaitTime: meanWaitTime(params),
     meanResponseTime: meanResponseTime(params),
+    waitTimeVariance: waitTimeVariance(params),
+    experiencedWaitTime: experiencedWaitTime(params),
     stable: a < params.c,
   };
 }

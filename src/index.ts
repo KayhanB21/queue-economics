@@ -17,6 +17,8 @@ export {
   meanResponseTime,
   waitTimeTail,
   waitQuantile,
+  responseTimeTail,
+  responseQuantile,
   waitTimeVariance,
   experiencedWaitTime,
   mmcMetrics,

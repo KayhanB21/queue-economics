@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { consolidationComparison } from "./consolidate";
+import { waitQuantile } from "./metrics";
 
 describe("consolidationComparison", () => {
   const input = {
@@ -37,5 +38,24 @@ describe("consolidationComparison", () => {
   test("rejects invalid pool or server counts", () => {
     expect(() => consolidationComparison({ ...input, pools: 0 })).toThrow();
     expect(() => consolidationComparison({ ...input, serversPerPool: 1.5 })).toThrow();
+  });
+
+  test("reports the cost of staying split", () => {
+    const r = consolidationComparison(input);
+    // Matching the merged tail needs at least as many servers per pool.
+    expect(r.serversPerPoolToMatchMerged).toBeGreaterThanOrEqual(input.serversPerPool);
+    expect(r.extraServersFromSplitting).toBeGreaterThanOrEqual(0);
+    expect(r.extraServersFromSplitting).toBe(
+      Math.max(0, input.pools * (r.serversPerPoolToMatchMerged - input.serversPerPool)),
+    );
+  });
+
+  test("a pool sized to match actually achieves the merged tail", () => {
+    const r = consolidationComparison(input);
+    const matched = waitQuantile(
+      { lambda: input.perPoolLambda, Ts: input.Ts, c: r.serversPerPoolToMatchMerged },
+      0.99,
+    );
+    expect(matched).toBeLessThanOrEqual(r.merged.waitQuantile + 1e-9);
   });
 });

@@ -6,6 +6,7 @@
  */
 
 import { mmcMetrics, waitQuantile, type MMcMetrics, type MMcParams } from "./metrics";
+import { serversForWaitQuantile } from "./planning";
 
 export interface ConsolidationInput {
   /** Number of independent pools (N). */
@@ -35,6 +36,17 @@ export interface ConsolidationResult {
   waitProbabilityDrop: number;
   /** Tail-latency reduction from merging (split − merged), for the chosen quantile. */
   waitQuantileDrop: number;
+  /**
+   * Servers each independent pool would need so its tail wait matches the merged
+   * pool's. This is the price of fragmentation, per pool.
+   */
+  serversPerPoolToMatchMerged: number;
+  /**
+   * Total extra servers across all N pools to buy the merged pool's tail latency
+   * while staying split: N · (serversPerPoolToMatchMerged − serversPerPool),
+   * never negative. The savings from consolidating.
+   */
+  extraServersFromSplitting: number;
 }
 
 function validate(input: ConsolidationInput): void {
@@ -67,11 +79,24 @@ export function consolidationComparison(input: ConsolidationInput): Consolidatio
     q,
   );
 
+  const serversPerPoolToMatchMerged = serversForWaitQuantile(
+    perPoolLambda,
+    Ts,
+    merged.waitQuantile,
+    q,
+  );
+  const extraServersFromSplitting = Math.max(
+    0,
+    pools * (serversPerPoolToMatchMerged - serversPerPool),
+  );
+
   return {
     utilization: split.utilization,
     split,
     merged,
     waitProbabilityDrop: split.waitProbability - merged.waitProbability,
     waitQuantileDrop: split.waitQuantile - merged.waitQuantile,
+    serversPerPoolToMatchMerged,
+    extraServersFromSplitting,
   };
 }

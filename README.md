@@ -69,6 +69,8 @@ squareRootStaffing(500, 0.5); // { servers, safetyMargin, beta, ... }
 | `meanWaitTime` / `meanResponseTime` | Mean queue wait `Wq` and total `W = Wq + Ts`. |
 | `waitTimeTail(params, t)` | Exact `P(Wait > t)`. |
 | `waitQuantile(params, q)` | Exact q-quantile of waiting time (e.g. `q = 0.99`). |
+| `responseTimeTail(params, t)` | Exact `P(response > t)`, where response = wait + service. |
+| `responseQuantile(params, q)` | q-quantile of total response time (end-to-end latency). |
 | `waitTimeVariance(params)` | Variance of the waiting time. |
 | `experiencedWaitTime(params)` | Wait as *felt* by arrivals (inspection paradox): `2·Ts/(c − a)`. |
 | `sizeBiasedMean(mean, variance)` | General length-biased mean `mean + variance/mean`. |
@@ -76,7 +78,7 @@ squareRootStaffing(500, 0.5); // { servers, safetyMargin, beta, ... }
 | `serversForWaitProbability(a, target)` | Smallest `c` meeting a wait-probability target. |
 | `serversForWaitQuantile(lambda, Ts, t, q)` | Smallest `c` whose p-quantile wait ≤ `t`. |
 | `squareRootStaffing(a, targetDelayProb)` | `c ≈ a + β·√a`, with the safety margin. |
-| `consolidationComparison(input)` | N independent pools vs one merged pool. |
+| `consolidationComparison(input)` | N independent pools vs one merged pool, plus the extra servers splitting costs. |
 | `simulateMMc(input)` | Seeded discrete-event sim (for validating the analytic curve). |
 
 `a` is the offered load in Erlangs (`a = lambda · Ts`). All time-based functions use
