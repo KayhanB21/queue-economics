@@ -4,6 +4,8 @@
 [![npm downloads](https://img.shields.io/npm/dm/queue-economics.svg)](https://www.npmjs.com/package/queue-economics)
 [![license: MIT](https://img.shields.io/npm/l/queue-economics.svg)](./LICENSE)
 
+> **Full write-up with live, interactive charts:** [Why Bigger Pools Wait Less](https://kayhan.dev/posts/017-why-bigger-pools-wait-less/)
+
 Queueing-theory math for the **economics of scale**: bigger server pools wait
 dramatically less at the *same* per-server utilization. Erlang B/C, M/M/c latency
 and percentiles, pool consolidation (split vs merge), and the square-root staffing
